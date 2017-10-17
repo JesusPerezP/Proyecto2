@@ -1,4 +1,5 @@
-// The Nature of Code
+
+ // The Nature of Code
 // <http://www.shiffman.net/teaching/nature>
 // Spring 2011
 // Box2DProcessing example
@@ -9,7 +10,7 @@ import shiffman.box2d.*;
 import org.jbox2d.collision.shapes.*;
 import org.jbox2d.common.*;
 import org.jbox2d.dynamics.*;
-PImage img;
+PImage img,altar;
 int pantalla = 0;
 int tiempoactual;
 int tiempo1 = 120000;
@@ -82,12 +83,12 @@ void draw() {
   void inicio(){
     background(#60EA1C);
     text("Preciona 1 para continuar",450,500);
-    if(keyPressed){
+    
       if(key == '1'){
     pantalla=1;
   }
     
-  }
+  
   }
   
    void instrucciones(){
@@ -104,25 +105,16 @@ void draw() {
 //____________________________________________________________________________________________________________________________________________________________________________  
    void juego(){
      
-     text("Preciona 3 para salir",400,100);
+     altar = loadImage("altar.png");
+     image(altar, 163, 405);
+     
+     text("Preciona 3 para salir",400,1000);
    if(keyPressed){
   if(key == '3'){
   pantalla=3;  
   }
    }
-   
   
-   
-  
-   tiempoactual = millis();
-  text(tiempoactual,100,100);
-  
-
-  if (tiempoactual >= tiempo1){
-
-    pantalla = 3;
-
-  }
       
      
       // We must always step through time!
@@ -318,4 +310,5 @@ void mousePressed() {
    
    }
 
+ 
  
