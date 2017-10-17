@@ -1,0 +1,321 @@
+// The Nature of Code
+// <http://www.shiffman.net/teaching/nature>
+// Spring 2011
+// Box2DProcessing example
+
+// Basic example of falling rectangles
+
+import shiffman.box2d.*;
+import org.jbox2d.collision.shapes.*;
+import org.jbox2d.common.*;
+import org.jbox2d.dynamics.*;
+PImage img;
+int pantalla = 0;
+int tiempoactual;
+int tiempo1 = 120000;
+
+
+
+// A reference to our box2d world
+Box2DProcessing box2d;
+
+// A list we'll use to track fixed objects
+ArrayList<Boundary> boundaries;
+// A list for all of our rectangles
+ArrayList<Lollipop> pops;
+
+void setup() {
+  size(1000,800);
+  smooth();
+  img = loadImage("pan2.png");
+     
+     // Initialize box2d physics and create the world
+  box2d = new Box2DProcessing(this,30);
+  box2d.createWorld();
+  // We are setting a custom gravity
+  box2d.setGravity(0, -20);
+
+  // Create ArrayLists  
+  pops = new ArrayList<Lollipop>();
+  boundaries = new ArrayList<Boundary>();
+
+  // Add a bunch of fixed boundaries
+  boundaries.add(new Boundary(2*width/4,height-380,50,3,0));
+  boundaries.add(new Boundary(2*width/4,height-290,150,3,0));
+  boundaries.add(new Boundary(2*width/4,height-240,300,3,0));
+  boundaries.add(new Boundary(2*width/4,height-190,400,3,0));
+  boundaries.add(new Boundary(2*width/4,height-140,500,3,0));
+  boundaries.add(new Boundary(2*width/4,height-90,650,3,0));
+  boundaries.add(new Boundary(2*width/4,height-40,750,3,0));
+  boundaries.add(new Boundary(width-5,height/2,10,height,0));
+  boundaries.add(new Boundary(5,height/2,10,height,0));
+
+
+  
+}
+
+void draw() {
+  background(255);
+  
+  switch(pantalla){
+  case 0:
+  inicio();
+  break;
+  
+  case 1:
+  instrucciones();
+  break;
+  
+  case 2:
+  juego();
+  break;
+  
+  case 3:
+  resultado();
+  break;
+  
+  
+  }
+  
+  }
+  
+  void inicio(){
+    background(#60EA1C);
+    text("Preciona 1 para continuar",450,500);
+    if(keyPressed){
+      if(key == '1'){
+    pantalla=1;
+  }
+    
+  }
+  }
+  
+   void instrucciones(){
+    background(#8B0DB2);
+    text("Preciona 2 para continuar",450,500);
+    if(keyPressed){
+      if (key == '2'){
+    pantalla=2;
+  }
+    }
+    
+    
+  }
+//____________________________________________________________________________________________________________________________________________________________________________  
+   void juego(){
+     
+     text("Preciona 3 para salir",400,100);
+   if(keyPressed){
+  if(key == '3'){
+  pantalla=3;  
+  }
+   }
+   
+  
+   
+  
+   tiempoactual = millis();
+  text(tiempoactual,100,100);
+  
+
+  if (tiempoactual >= tiempo1){
+
+    pantalla = 3;
+
+  }
+      
+     
+      // We must always step through time!
+  box2d.step();
+
+  // Display all the boundaries
+  for (Boundary wall: boundaries) {
+    wall.display();
+  }
+
+  // Display all the people
+  for (Lollipop p: pops) {
+    p.display();
+  }
+
+  // people that leave the screen, we delete them
+  // (note they have to be deleted from both the box2d world and our list
+  for (int i = pops.size()-1; i >= 0; i--) {
+    Lollipop p = pops.get(i);
+    if (p.done()) {
+      pops.remove(i);
+    }
+  }
+}
+
+// The Nature of Code
+// <http://www.shiffman.net/teaching/nature>
+// Spring 2012
+// Box2DProcessing example
+
+// A fixed boundary class (now incorporates angle)
+
+class Boundary {
+
+  // A boundary is a simple rectangle with x,y,width,and height
+  float x;
+  float y;
+  float w;
+  float h;
+  // But we also have to make a body for box2d to know about it
+  Body b;
+
+ Boundary(float x_,float y_, float w_, float h_, float a) {
+    x = x_;
+    y = y_;
+    w = w_;
+    h = h_;
+
+    // Define the polygon
+    PolygonShape sd = new PolygonShape();
+    // Figure out the box2d coordinates
+    float box2dW = box2d.scalarPixelsToWorld(w/2);
+    float box2dH = box2d.scalarPixelsToWorld(h/2);
+    // We're just a box
+    sd.setAsBox(box2dW, box2dH);
+
+
+    // Create the body
+    BodyDef bd = new BodyDef();
+    bd.type = BodyType.STATIC;
+    bd.angle = a;
+    bd.position.set(box2d.coordPixelsToWorld(x,y));
+    b = box2d.createBody(bd);
+    
+    // Attached the shape to the body using a Fixture
+    b.createFixture(sd,1);
+  }
+
+  // Draw the boundary, if it were at an angle we'd have to do something fancier
+  void display() {
+    fill(0);
+    stroke(0);
+    strokeWeight(1);
+    rectMode(CENTER);
+
+    float a = b.getAngle();
+
+    pushMatrix();
+    translate(x,y);
+    rotate(-a);
+    rect(0,0,w,h);
+    popMatrix();
+  }
+
+}
+// The Nature of Code
+// <http://www.shiffman.net/teaching/nature>
+// Spring 2011
+// Box2DProcessing example
+
+// A rectangular box
+class Lollipop {
+
+  // We need to keep track of a Body and a width and height
+  Body body;
+  float w;
+  float h;
+  float r;
+
+  // Constructor
+  Lollipop(float x, float y) {
+    w = 60;
+    h = 60;
+    r = 0;
+    // Add the box to the box2d world
+    makeBody(new Vec2(x, y));
+  }
+
+  // This function removes the particle from the box2d world
+  void killBody() {
+    box2d.destroyBody(body);
+  }
+
+  // Is the particle ready for deletion?
+  boolean done() {
+    // Let's find the screen position of the particle
+    Vec2 pos = box2d.getBodyPixelCoord(body);
+    // Is it off the bottom of the screen?
+    if (pos.y > height+w*h) {
+      killBody();
+      return true;
+    }
+    return false;
+  }
+
+  // Drawing the lollipop
+  void display() {
+    // We look at each body and get its screen position
+    Vec2 pos = box2d.getBodyPixelCoord(body);
+    // Get its angle of rotation
+    float a = body.getAngle();
+
+     rectMode(CENTER);
+    pushMatrix();
+    translate(pos.x, pos.y);
+    image(img, -30, -15);
+    rotate(-a);
+    popMatrix();
+ 
+
+  
+  }
+
+  // This function adds the rectangle to the box2d world
+  void makeBody(Vec2 center) {
+
+    // Define the body and make it from the shape
+    BodyDef bd = new BodyDef();
+    bd.type = BodyType.DYNAMIC;
+    bd.position.set(box2d.coordPixelsToWorld(center));
+    body = box2d.createBody(bd);
+
+    CircleShape circle = new CircleShape();
+    circle.m_radius = box2d.scalarPixelsToWorld(r);
+    Vec2 offset = new Vec2(0,h/2);
+    offset = box2d.vectorPixelsToWorld(offset);
+    circle.m_p.set(offset.x,offset.y);
+
+    PolygonShape sd = new PolygonShape();
+    float box2dW = box2d.scalarPixelsToWorld(w/2);
+    float box2dH = box2d.scalarPixelsToWorld(h/2);
+    sd.setAsBox(box2dW, box2dH);
+
+    body.createFixture(sd,1.0);
+    body.createFixture(circle, 1.0);
+
+    // Give it some initial random velocity
+   body.setLinearVelocity(new Vec2(random(-5, 5), random(2, 5)));
+    body.setAngularVelocity(random(-1, 60));
+  }
+}
+void mousePressed() {
+  Lollipop p = new Lollipop(mouseX,20);
+  pops.add(p);
+}
+
+
+    
+    
+  
+//____________________________________________________________________________________________________________________________________________________________________________  
+   void resultado() {
+    background(#4FC7F5);
+    text("Preciona 4 para regresar al inicio",450,500);
+   
+    if(keyPressed){
+     if (key == '4'){
+        
+    pantalla=0;
+      }
+  }
+   
+   
+   }
+
+ 
